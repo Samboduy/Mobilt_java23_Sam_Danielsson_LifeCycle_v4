@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "878023689648",
+    "project_id": "mobiltjava-19a1a",
+    "storage_bucket": "mobiltjava-19a1a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:878023689648:android:9a4feed52b8ddf752e8275",
+        "android_client_info": {
+          "package_name": "com.gritacademy.se.lifecycle_v4"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHuNfDnLbdaLQ2gaHq9hLG8RRfgShbM3A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
