@@ -49,6 +49,9 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var loggedInIntent: Intent
     private lateinit var registerIntent: Intent
     private lateinit var registerScared:Switch
+    private lateinit var registerLogoutBtn:Button
+    private lateinit var registerProfileBtn:Button
+    private lateinit var registerLoginBtn:Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +65,7 @@ class RegisterActivity : AppCompatActivity() {
 
          loggedInIntent = Intent(this,LoggedInActivity::class.java)
          registerIntent = Intent(this,RegisterActivity::class.java)
+        val logInIntent:Intent = Intent(this,MainActivity::class.java)
 
         db = Firebase.firestore
         registerEmail = findViewById(R.id.regEmail)
@@ -71,13 +75,36 @@ class RegisterActivity : AppCompatActivity() {
         driversLicense = findViewById(R.id.regDriversLicense)
         registerScared = findViewById(R.id.registerScared)
         finishRegisterBtn = findViewById(R.id.finishRegistrationBtn)
+        registerLogoutBtn = findViewById(R.id.registerLogoutBtn)
+        registerLoginBtn = findViewById(R.id.registerLoginBtn)
+        registerProfileBtn = findViewById(R.id.registerProfileBtn)
         auth = Firebase.auth
-
-
 
         finishRegisterBtn.setOnClickListener {
             register()
         }
+
+        registerLogoutBtn.setOnClickListener{
+            if (auth.currentUser!=null){
+                auth.signOut()
+                startActivity(logInIntent)
+            }
+            else{
+                Toast.makeText(baseContext, "You need to login to logout", Toast.LENGTH_SHORT).show()
+            }
+        }
+        registerLoginBtn.setOnClickListener{
+            startActivity(logInIntent)
+        }
+        registerProfileBtn.setOnClickListener{
+            if (auth.currentUser!=null){
+                startActivity(loggedInIntent)
+            }
+            else{
+                Toast.makeText(baseContext, "login or create an account", Toast.LENGTH_SHORT).show()
+            }
+        }
+
     }
 
     fun register() {

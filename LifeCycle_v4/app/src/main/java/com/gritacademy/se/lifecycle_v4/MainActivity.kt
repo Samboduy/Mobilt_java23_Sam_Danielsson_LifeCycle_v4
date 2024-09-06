@@ -15,21 +15,24 @@ import androidx.core.view.WindowInsetsCompat
 import com.google.firebase.Firebase
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
+import kotlin.math.log
 
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
-    private lateinit var  db:FirebaseFirestore
-    private lateinit var loginBtn:Button
-    private lateinit var emailUserInput:TextView
-    private lateinit var passwordInput:TextView
-    private lateinit var registerBtn:Button
-
-
+    private lateinit var db: FirebaseFirestore
+    private lateinit var loginBtn: Button
+    private lateinit var emailUserInput: TextView
+    private lateinit var passwordInput: TextView
+    private lateinit var registerBtn: Button
+    private lateinit var loginLogoutBtn: Button
+    private lateinit var loginProfileBtn: Button
+    private lateinit var loggedInIntent:Intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,64 +50,52 @@ class MainActivity : AppCompatActivity() {
         registerBtn = findViewById(R.id.registerBtn)
         emailUserInput = findViewById(R.id.emailInput)
         passwordInput = findViewById(R.id.passwordInput)
+        loginLogoutBtn = findViewById(R.id.loginLogoutBtn)
+        loginProfileBtn = findViewById(R.id.loginProfileBtn)
 
 
-        val loggedInIntent = Intent(this,LoggedInActivity::class.java)
-        val registerIntent = Intent(this,RegisterActivity::class.java)
+        loggedInIntent = Intent(this, LoggedInActivity::class.java)
+        val registerIntent = Intent(this, RegisterActivity::class.java)
 
         // See: https://developer.android.com/training/basics/intents/result
 
         // See: https://developer.android.com/training/basics/intents/result
-
-
 
 
         loginBtn.setOnClickListener {
-            signIn(emailUserInput.text.toString(),passwordInput.text.toString())
-            loggedInIntent.apply { }
-            startActivity(loggedInIntent)
+            if (auth.currentUser != null){
+                auth.signOut()
+            }
+            signIn(emailUserInput.text.toString(), passwordInput.text.toString())
         }
-        registerBtn.setOnClickListener{
+        registerBtn.setOnClickListener {
             startActivity(registerIntent)
         }
-
-
-
-        /*db.collection("users")
-            .whereEqualTo("firstname", "Sam")
-            .get()
-            .addOnSuccessListener { documents ->
-                for (document in documents) {
-                    Log.d("Sam", "${document.id} => ${document.data}")
-                }
+        loginLogoutBtn.setOnClickListener {
+            if (auth.currentUser != null) {
+                auth.signOut()
+                Toast.makeText(baseContext, "Logged out", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(baseContext, "you are already logged out", Toast.LENGTH_SHORT).show()
             }
-            .addOnFailureListener { exception ->
-                Log.w("Sam", "Error getting documents: ", exception)
-            }*/
-
-        // Create a new user with a first and last name
-        /* val user = hashMapOf(
-             "first" to "Ada",
-             "last" to "Lovelace",
-             "born" to 1815,
-         )*/
-
-        // Add a new document with a generated ID
-       /* db.collection("users").add(user).addOnSuccessListener { documentReference ->
-            Log.d("Sam", "DocumentSnapshot added with ID: ${documentReference.id}")
-        }.addOnFailureListener { e ->
-            Log.w("Sam", "Error adding document", e)
-        }*/
-
+        }
+        loginProfileBtn.setOnClickListener {
+            if (auth.currentUser != null) {
+                startActivity(loggedInIntent)
+            } else {
+                Toast.makeText(baseContext, "login first", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
-    private fun signIn(email:String,password:String){
+    private fun signIn(email: String, password: String) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d("Sam", "signInWithEmail:success")
                     val user = auth.currentUser
+                    startActivity(loggedInIntent)
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w("Sam", "signInWithEmail:failure", task.exception)

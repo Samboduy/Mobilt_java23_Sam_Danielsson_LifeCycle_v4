@@ -1,25 +1,25 @@
 package com.gritacademy.se.lifecycle_v4
 
+import android.content.Intent
 import android.os.Bundle
-import android.provider.MediaStore.Audio.Radio
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.CheckBox
+import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.Switch
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.get
 import com.google.firebase.Firebase
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestore
-import java.util.Date
 import kotlin.properties.Delegates
 
 class LoggedInActivity : AppCompatActivity() {
@@ -42,6 +42,11 @@ class LoggedInActivity : AppCompatActivity() {
     private lateinit var loggedInPhoneNumber: TextView
     private lateinit var loggedInPassword: TextView
     private lateinit var loggedInDriversLicense: CheckBox
+    private lateinit var finishChangesBtn: Button
+    private lateinit var selectedGender: String
+    private lateinit var loggedInLogOutBtn:Button
+    private lateinit var loggedInRegisterBtn:Button
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,8 +70,14 @@ class LoggedInActivity : AppCompatActivity() {
         maleGender = findViewById(R.id.male);
         femaleGender = findViewById(R.id.female);
         otherGender = findViewById(R.id.other);
+        finishChangesBtn = findViewById(R.id.changeProfileBtn)
+        loggedInLogOutBtn = findViewById(R.id.loggedInLogOutBtn)
+        loggedInRegisterBtn = findViewById(R.id.loggedInRegisterBtn)
 
         val user = Firebase.auth.currentUser
+        val registerIntent = Intent(this,RegisterActivity::class.java)
+        val logoutIntent = Intent(this,MainActivity::class.java)
+
         if (user != null) {
             let {
                 email = user.email.toString()
@@ -95,7 +106,7 @@ class LoggedInActivity : AppCompatActivity() {
 
                     when (gender) {
                         "male" -> {
-                           // val idx: Int = loggedInGenderGroup.indexOfChild(maleGender)
+                            // val idx: Int = loggedInGenderGroup.indexOfChild(maleGender)
                             loggedInGenderGroup.check(maleGender.id)
                         }
 
@@ -111,7 +122,8 @@ class LoggedInActivity : AppCompatActivity() {
                             loggedInGenderGroup.check(otherGender.id)
                             Log.i("Sam", "found it")
                         }
-                        else ->{
+
+                        else -> {
                             Log.i("Sam", "Could not find it")
                         }
 
@@ -125,7 +137,79 @@ class LoggedInActivity : AppCompatActivity() {
                 Log.d("Sam", "get failed with ", exception)
             }
 
+        finishChangesBtn.setOnClickListener {
+            finishChanges()
+        }
 
+        loggedInLogOutBtn.setOnClickListener{
+            auth.signOut()
+            startActivity(logoutIntent)
+        }
+        loggedInRegisterBtn.setOnClickListener{
+            startActivity(registerIntent)
+        }
+
+    }
+
+    fun finishChanges() {
+        val user = Firebase.auth.currentUser
+        val newMail: String = loggedInEmail.text.toString().trim()
+        val newPassword: String = loggedInPassword.text.toString().trim()
+        val newPhone: String = loggedInPhoneNumber.text.toString().trim()
+        val radioButton: View
+        val idx: Int
+        val r: RadioButton
+        val newScaredCheck: Boolean = loggedInScared.isChecked
+        val newDriversLicense = loggedInDriversLicense.isChecked
+        val userID:String? = user?.uid;
+
+
+        val radioButtonID: Int = loggedInGenderGroup.checkedRadioButtonId;
+        try {
+            radioButton = loggedInGenderGroup.findViewById(radioButtonID)
+            idx = loggedInGenderGroup.indexOfChild(radioButton);
+            r = loggedInGenderGroup.getChildAt(idx) as RadioButton
+            selectedGender = r.text.toString().trim()
+        } catch (e: Exception) {
+            selectedGender = "male".trim()
+            Log.i("Sam", "Exception: ${selectedGender}")
+        }
+
+        if (newMail.isNotEmpty() && newPassword.isNotEmpty() && newPhone.isNotEmpty() && selectedGender.isNotEmpty()) {
+            user!!.updateEmail(newMail)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d("Sam", "User email address updated.")
+                    }
+                }
+
+            user.updatePassword(newPassword)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Log.d("Sam", "User password updated.")
+                    }
+                }
+
+            val updatedUser = hashMapOf(
+                "driving license" to newDriversLicense,
+                "gender" to selectedGender,
+                "password" to newPassword,
+                "phone" to newPhone.toInt(),
+                "scared" to newScaredCheck
+            )
+
+            db.collection("users").document(userID.toString())
+                .set(updatedUser)
+                .addOnSuccessListener { Log.d("Sam", "DocumentSnapshot successfully written!")
+                    Toast.makeText(baseContext, "Profile Changed", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e -> Log.w("Sam", "Error writing document", e) }
+
+
+        }
+        else{
+            Toast.makeText(baseContext, "Something went wrong", Toast.LENGTH_SHORT).show()
+        }
 
     }
 }

@@ -60,7 +60,7 @@
         app:layout_constraintVertical_bias="0.255" />
 
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/loginProfileBtn"
         android:layout_width="100dp"
         android:layout_height="50dp"
         android:text="Profile"
@@ -72,7 +72,7 @@
         app:layout_constraintVertical_bias="0.744" />
 
     <Button
-        android:id="@+id/button6"
+        android:id="@+id/loginLogoutBtn"
         android:layout_width="100dp"
         android:layout_height="50dp"
         android:text="Logout"
